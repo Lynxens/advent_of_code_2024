@@ -1,0 +1,8 @@
+.idea/
+.venv/
+
+input.txt
+input_*.txt
+
+!src/days/day0/input.txt
+!src/days/day0/input_example.txt
