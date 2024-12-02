@@ -1,10 +1,27 @@
+import numpy as np
+
+
 def read_full(file_path: str) -> str:
     with open(file_path, 'r') as f:
         return f.read()
 
+
 def read_lines(file_path: str) -> list[str]:
     with open(file_path, 'r') as f:
         return f.readlines()
+
+
+def read_int_matrix(file_path: str) -> np.ndarray:
+    return np.array([*map(
+        lambda line: [*map(int, line.split(' '))],
+        read_lines(file_path),
+    )])
+
+def int_array(s: str) -> np.ndarray:
+    return np.array(
+        [*map(int, s.split(' '))],
+        dtype=np.int64,
+    )
 
 def split_once(s: str, sep: str) -> tuple[str, str]:
     parts = s.split(sep, 1)

@@ -1,13 +1,16 @@
 from dataclasses import dataclass
 from abstract_advent_day import *
 from data_reader import *
+from util import *
+
 
 @dataclass(slots=True, frozen=True)
 class Data:
     data: list[str]
 
+
 @advent_info(day=None)
-class AdventAdventDay(AbstractAdventDay):
+class AdventDay(AbstractAdventDay):
     def read(self, file_path: str) -> Data:
         return Data(read_lines(file_path))
 

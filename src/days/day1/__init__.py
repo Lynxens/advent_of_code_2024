@@ -1,7 +1,7 @@
 from dataclasses import dataclass
-import numpy as np
 from abstract_advent_day import *
 from data_reader import *
+from util import *
 
 
 @dataclass(slots=True, frozen=True)
@@ -11,7 +11,7 @@ class Data:
 
 
 @advent_info(day=1)
-class AdventAdventDay(AbstractAdventDay):
+class AdventDay(AbstractAdventDay):
     def read(self, file_path: str) -> Data:
         lines = read_lines(file_path)
 
