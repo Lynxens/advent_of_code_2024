@@ -9,10 +9,11 @@ def advent_info(day: int):
 
     return decorator
 
-def expected_answers(example_answer: Answer | tuple[Answer], answer: Answer | tuple[Answer]):
+def expected_answers(example_answer: Answer | tuple[Answer, ...], answer: Answer | tuple[Answer, ...], disable: bool = False):
     def decorator(func: callable):
         func.example_answer = example_answer
         func.answer = answer
+        func.disable = disable
         return func
 
     return decorator
@@ -36,6 +37,9 @@ class AbstractAdventDay(unittest.TestCase):
         return self.read(f'day{self.day}/input.txt')
 
     def test_puzzle_1_example(self):
+        if self.puzzle_1.disable:
+            return
+
         if isinstance(self.puzzle_1.example_answer, tuple):
             for i, answer in enumerate(self.puzzle_1.example_answer, start=1):
                 self.assertEqual(answer, self.puzzle_1(self.read_example(i)))
@@ -43,9 +47,15 @@ class AbstractAdventDay(unittest.TestCase):
             self.assertEqual(self.puzzle_1.example_answer, self.puzzle_1(self.read_example()))
 
     def test_puzzle_1(self):
+        if self.puzzle_1.disable:
+            return
+
         self.assertEqual(self.puzzle_1.answer, self.puzzle_1(self.read_main()))
 
     def test_puzzle_2_example(self):
+        if self.puzzle_2.disable:
+            return
+
         if isinstance(self.puzzle_2.example_answer, tuple):
             for i, answer in enumerate(self.puzzle_2.example_answer, start=1):
                 self.assertEqual(answer, self.puzzle_2(self.read_example(i)))
@@ -53,6 +63,9 @@ class AbstractAdventDay(unittest.TestCase):
             self.assertEqual(self.puzzle_2.example_answer, self.puzzle_2(self.read_example()))
 
     def test_puzzle_2(self):
+        if self.puzzle_2.disable:
+            return
+
         self.assertEqual(self.puzzle_2.answer, self.puzzle_2(self.read_main()))
 
     def solve_puzzles(self):
