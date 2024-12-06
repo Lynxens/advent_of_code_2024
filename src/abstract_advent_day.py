@@ -46,7 +46,7 @@ class AbstractAdventDay(unittest.TestCase):
         else:
             self.assertEqual(self.puzzle_1.example_answer, self.puzzle_1(self.read_example()))
 
-    def test_puzzle_1(self):
+    def test_puzzle_1_real(self):
         if self.puzzle_1.disable:
             return
 
@@ -62,7 +62,7 @@ class AbstractAdventDay(unittest.TestCase):
         else:
             self.assertEqual(self.puzzle_2.example_answer, self.puzzle_2(self.read_example()))
 
-    def test_puzzle_2(self):
+    def test_puzzle_2_real(self):
         if self.puzzle_2.disable:
             return
 
