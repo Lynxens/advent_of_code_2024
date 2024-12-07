@@ -5,7 +5,7 @@ import numpy as np
 
 
 def implode(a: Iterable, sep: str = '') -> str:
-    return sep.join(a)
+    return sep.join(map(str, a))
 
 
 def minmax(a: np.ndarray) -> tuple[int, int]:
