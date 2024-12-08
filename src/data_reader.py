@@ -17,11 +17,20 @@ def read_int_matrix(file_path: str) -> np.ndarray:
         read_lines(file_path),
     )])
 
+
+def read_str_matrix(file_path: str) -> np.ndarray:
+    return np.array([*map(
+        lambda line: [*line.rstrip()],
+        read_lines(file_path),
+    )])
+
+
 def int_array(s: str) -> np.ndarray:
     return np.array(
         [*map(int, s.split(' '))],
         dtype=np.int64,
     )
+
 
 def split_once(s: str, sep: str) -> tuple[str, str]:
     parts = s.split(sep, 1)
