@@ -11,46 +11,62 @@ from util import *
 class Data:
     disk_map: list[int]
 
-
 @dataclass(slots=True)
-class File:
-    id: int
+class Entry:
     size: int
+    is_space: bool = False
 
+class Space(Entry):
+    def __init__(self, size: int):
+        super().__init__(id=None, size=size, is_space=True)
 
-@dataclass(slots=True)
-class Space:
-    size: int
-
+class File(Entry):
+    def __init__(self, file_id: int, size: int):
+        super().__init__(id=file_id, size=size, is_space=False)
 
 @dataclass(slots=True)
 class Disk:
-    memory: list[File | Space]
+    memory: list[Entry]
+
+    def __init__(self, disk_map: list[int]):
+        self.memory = []
+
+        file_id = 0
+        for i in range(len(disk_map)):
+            if i % 2 == 0:
+                self.memory.append(File(file_id=file_id, size=disk_map[i]))
+                file_id += 1
+            else:
+                self.memory.append(Space(size=disk_map[i]))
 
     def files(self):
-        return [*filter(lambda entry: isinstance(entry, File), reversed(self.memory))]
+        return [*filter(lambda entry: not entry.is_space, reversed(self.memory))]
 
     def find_space(self, size: int) -> int | None:
-        for i, entry in enumerate(self.memory):
-            if isinstance(entry, Space) and entry.size >= size:
+        for i in range(len(self.memory)):
+            if self.memory[i].is_space and self.memory[i].size >= size:
+                return i
+
+    def find_file_index(self, file_id: int, start_index: int) -> int:
+        for i in range(start_index, -1, -1):
+            if self.memory[i].id == file_id:
                 return i
 
     def move_file(self, from_index: int, to_index: int):
         file = self.memory[from_index]
 
-        if 0 < from_index < len(self.memory) - 1 and isinstance(self.memory[from_index - 1], Space) and isinstance(
-                self.memory[from_index + 1], Space):
+        if 0 < from_index < len(self.memory) - 1 and self.memory[from_index - 1].is_space and self.memory[from_index + 1].is_space:
             self.memory[from_index - 1].size += self.memory[from_index + 1].size + file.size
             del self.memory[from_index + 1]
             del self.memory[from_index]
-        elif isinstance(self.memory[from_index - 1], Space):
+        elif self.memory[from_index - 1].is_space:
             self.memory[from_index - 1].size += file.size
             del self.memory[from_index]
-        elif isinstance(self.memory[from_index + 1], Space):
+        elif self.memory[from_index + 1].is_space:
             self.memory[from_index + 1].size += file.size
             del self.memory[from_index]
         else:
-            self.memory[from_index] = Space(file.size)
+            self.memory[from_index] = Space(size=file.size)
 
         self.memory[to_index].size -= file.size
 
@@ -61,12 +77,11 @@ class Disk:
         position = 0
 
         for entry in self.memory:
-            if isinstance(entry, File):
-                for _ in range(entry.size):
-                    checksum += entry.id * position
-                    position += 1
+            if entry.is_space:
+                position += entry.size
             else:
                 for _ in range(entry.size):
+                    checksum += entry.id * position
                     position += 1
 
         return checksum
@@ -113,29 +128,21 @@ class AdventDay(AbstractAdventDay):
 
     @expected_answers(example_answer=2858, answer=6363268339304)
     def puzzle_2(self, data: Data) -> int:
-        memory = []
+        disk = Disk(data.disk_map)
 
-        file_id = 0
-        for i in range(len(data.disk_map)):
-            if i % 2 == 0:
-                memory.append(File(id=file_id, size=data.disk_map[i]))
-                file_id += 1
-            else:
-                memory.append(Space(size=data.disk_map[i]))
-
-        disk = Disk(memory)
-
+        last_index = len(disk.memory) - 1
         for file in disk.files():
             to_index = disk.find_space(file.size)
 
             if to_index is None:
                 continue
 
-            from_index = disk.memory.index(file)
+            from_index = disk.find_file_index(file.id, last_index)
 
             if from_index <= to_index:
                 continue
 
             disk.move_file(from_index, to_index)
+            last_index = from_index
 
         return disk.calculate_checksum()
