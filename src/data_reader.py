@@ -8,19 +8,19 @@ def read_full(file_path: str) -> str:
 
 def read_lines(file_path: str) -> list[str]:
     with open(file_path, 'r') as f:
-        return f.readlines()
+        return [line.rstrip() for line in f.readlines()]
 
 
-def read_int_matrix(file_path: str) -> np.ndarray:
+def read_int_matrix(file_path: str, sep: str = ' ') -> np.ndarray:
     return np.array([*map(
-        lambda line: [*map(int, line.split(' '))],
+        lambda line: [*map(int, line.split(sep) if sep else list(line))],
         read_lines(file_path),
     )])
 
 
 def read_str_matrix(file_path: str) -> np.ndarray:
     return np.array([*map(
-        lambda line: [*line.rstrip()],
+        lambda line: [*line],
         read_lines(file_path),
     )])
 
