@@ -24,6 +24,11 @@ def read_str_matrix(file_path: str) -> np.ndarray:
         read_lines(file_path),
     )])
 
+def str_to_str_matrix(s: str) -> np.ndarray:
+    return np.array([*map(
+        lambda line: [*line],
+        s.split('\n'),
+    )])
 
 def int_array(s: str) -> np.ndarray:
     return np.array(
