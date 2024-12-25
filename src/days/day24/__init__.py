@@ -73,7 +73,7 @@ class AdventDay(AbstractAdventDay):
 
         return int(result, 2)
 
-    @expected_answers(example_answer='', answer=None)
+    @expected_answers(example_answer='', answer='cgq,fnr,kqk,nbc,svm,z15,z23,z39')
     def puzzle_2(self, data: Data) -> str:
         if data.is_example:
             return ''
@@ -95,130 +95,62 @@ class AdventDay(AbstractAdventDay):
         for z_output in sorted(filter(lambda k: k[0] == 'z', data.gates.keys())):
             visited |= find_output_gates(z_output, visited)
 
-            gate = data.gates[z_output]
-            print(
-                z_output,
-                len(output_gates[z_output]),
-                output_gates[z_output],
-                [*map(lambda g: data.gates[g].operator, output_gates[z_output])],
-                gate.operator,
-                data.gates[gate.left].operator if gate.left in data.gates else gate.left,
-                data.gates[gate.right].operator if gate.right in data.gates else gate.right,
-            )
-
+        swapped_gates = {}
         for i in range(1, 45):
-            node_values = dict()
-
-            def get_node_value(node: str, swap: dict[str, str] = {}, depth: int = 0) -> bool:
-                if depth > 100:
-                    return False
-
-                if node not in node_values:
-                    connection = data.gates[node]
-                    left_value = get_node_value(swap.get(connection.left, connection.left), swap, depth + 1)
-                    right_value = get_node_value(swap.get(connection.right, connection.right), swap, depth + 1)
-                    node_values[node] = OperatorHandler[connection.operator](left_value, right_value)
-
-                return node_values[node]
-
-            all_okay = True
-            node_values = {
-                k: False for k in data.inputs.keys()
-            }
-            node_values['x' + str(i).zfill(2)] = True
-            zi = 'z' + str(i).zfill(2)
-            if get_node_value(zi) != True:
-                print(zi + ' 1 0 = 0')
-                all_okay = False
-
-            node_values = {
-                k: False for k in data.inputs.keys()
-            }
-            node_values['y' + str(i).zfill(2)] = True
-            if get_node_value(zi) != True:
-                print(zi + ' 0 1 = 0')
-                all_okay = False
-
-            node_values = {
-                k: False for k in data.inputs.keys()
-            }
-            node_values['x' + str(i).zfill(2)] = True
-            node_values['y' + str(i).zfill(2)] = True
-            if get_node_value(zi) != False:
-                print(zi + ' 1 1 = 1')
-                all_okay = False
-
-            node_values = {
-                k: False for k in data.inputs.keys()
-            }
-            node_values['x' + str(i - 1).zfill(2)] = True
-            node_values['y' + str(i - 1).zfill(2)] = True
-            if get_node_value(zi) != True:
-                print(zi + ' --1 --1 = 0')
-                all_okay = False
-
-            if all_okay:
+            if output_works_as_expected(data, i, swapped_gates):
                 continue
 
-            potential_gates = output_gates[f'z{i:02d}'] | output_gates[f'z{(i + 1):02d}'] | {f'z{i:02d}', f'z{(i + 1):02d}'}
+            zi = f'z{i:02d}'
+            zi_plus = f'z{(i + 1):02d}'
+            potential_gates = {zi} | output_gates[zi] | output_gates[zi_plus]
             for a, b in combinations(potential_gates, 2):
-                swap_gates = {
+                test_swap = swapped_gates | {
                     a: b,
                     b: a,
                 }
 
-                node_values = {
-                    k: False for k in data.inputs.keys()
-                }
-                node_values['x' + str(i).zfill(2)] = True
-                if get_node_value(swap_gates.get(zi, zi), swap_gates) != True:
-                    continue
+                if output_works_as_expected(data, i, test_swap) and output_works_as_expected(data, i + 1, test_swap):
+                    swapped_gates = test_swap
+                    break
 
-                node_values = {
-                    k: False for k in data.inputs.keys()
-                }
-                node_values['y' + str(i).zfill(2)] = True
-                if get_node_value(swap_gates.get(zi, zi), swap_gates) != True:
-                    continue
+        return ','.join(sorted(swapped_gates.keys()))
 
-                node_values = {
-                    k: False for k in data.inputs.keys()
-                }
-                node_values['x' + str(i).zfill(2)] = True
-                node_values['y' + str(i).zfill(2)] = True
-                if get_node_value(swap_gates.get(zi, zi), swap_gates) != False:
-                    continue
 
-                node_values = {
-                    k: False for k in data.inputs.keys()
-                }
-                node_values['x' + str(i - 1).zfill(2)] = True
-                node_values['y' + str(i - 1).zfill(2)] = True
-                if get_node_value(swap_gates.get(zi, zi), swap_gates) != True:
-                    continue
+def output_works_as_expected(data: Data, i: int, swap: dict[str, str]) -> bool:
+    xi = f'x{i:02d}'
+    yi = f'y{i:02d}'
+    zi = f'z{i:02d}'
+    xi_min = f'x{(i - 1):02d}'
+    yi_min = f'y{(i - 1):02d}'
+    zi_plus = f'z{(i + 1):02d}'
 
-                print(a, b)
-                # data.gates[a], data.gates[b] = data.gates[b], data.gates[a]
-                # break
+    return (
+        get_output_value(data, swap, zi, [xi]) == True
+        and get_output_value(data, swap, zi, [yi]) == True
+        and get_output_value(data, swap, zi, [xi, yi]) == False
+        and get_output_value(data, swap, zi_plus, [xi, yi]) == True
+        and get_output_value(data, swap, zi_plus, [xi]) == False
+        and get_output_value(data, swap, zi_plus, [yi]) == False
+        and get_output_value(data, swap, zi, [xi_min, yi_min]) == True
+        and get_output_value(data, swap, zi, [xi_min]) == False
+        and get_output_value(data, swap, zi, [yi_min]) == False
+    )
 
-        return None
+def get_output_value(data: Data, swap: dict[str, str], output: str, true_inputs: list[str]) -> bool:
+    node_values = {
+        k: k in true_inputs for k in data.inputs.keys()
+    }
 
-"""   
-nbc,svm,kqk,z15,cgq,z23,z39,fnr
+    def get_node_value(node: str, depth: int = 0) -> bool:
+        if depth > 100:
+            return False
 
-z05 4 {'svm', 'rgq', 'brg', 'ppw'} ['AND', 'OR', 'AND', 'AND'] XOR OR AND
-z06 4 {'nbc', 'skn', 'pdf', 'wcw'} ['XOR', 'AND', 'OR', 'XOR'] XOR OR XOR
-nbc svm
+        if node not in node_values:
+            connection = data.gates[node]
+            left_value = get_node_value(swap.get(connection.left, connection.left), depth + 1)
+            right_value = get_node_value(swap.get(connection.right, connection.right), depth + 1)
+            node_values[node] = OperatorHandler[connection.operator](left_value, right_value)
 
-z15 6 {'wfh', 'pbd', 'cpv', 'wth', 'dkk', 'fwr'} ['AND', 'AND', 'OR', 'AND', 'AND', 'XOR'] OR AND AND
-z16 2 {'kqk', 'rbr'} ['XOR', 'XOR'] XOR XOR XOR
-kqk z15
+        return node_values[node]
 
-z23 0 set() [] AND x23 y23
-z24 8 {'qdg', 'jcb', 'kph', 'nkr', 'dwt', 'hpw', 'cgq', 'ngq'} ['AND', 'AND', 'OR', 'XOR', 'AND', 'XOR', 'XOR', 'OR'] XOR XOR OR
-cgq z23
-
-z39 4 {'hpf', 'bdr', 'fsp', 'phv'} ['AND', 'XOR', 'OR', 'AND'] AND OR XOR
-z40 4 {'fnr', 'nqp', 'sbn', 'nrj'} ['XOR', 'XOR', 'OR', 'AND'] XOR XOR OR
-z39 fnr
-"""
+    return get_node_value(swap.get(output, output))
