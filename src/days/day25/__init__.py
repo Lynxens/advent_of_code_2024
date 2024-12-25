@@ -16,8 +16,7 @@ class AdventDay(AbstractAdventDay):
         locks = []
         keys = []
 
-        grids = read_full(file_path).split('\n\n')
-        for grid in grids:
+        for grid in read_full(file_path).split('\n\n'):
             lock_or_key = (str_to_str_matrix(grid) == '#').astype(np.int8)
             (locks if lock_or_key[0, 0] else keys).append(lock_or_key)
 
